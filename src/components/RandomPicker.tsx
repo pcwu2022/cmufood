@@ -10,9 +10,11 @@ export default function RandomPicker({ restaurants, onPick }: RandomPickerProps)
     if (restaurants.length === 0) return;
     const choice = restaurants[Math.floor(Math.random() * restaurants.length)];
     onPick(choice);
-    document.getElementById(`card-${choice.id}`)?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
+    requestAnimationFrame(() => {
+      document.getElementById(`card-${choice.id}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
     });
   };
 

@@ -65,6 +65,13 @@ export default function App() {
     });
   }, [restaurants, filters]);
 
+  const orderedFiltered = useMemo(() => {
+    if (!selected || !filtered.some((restaurant) => restaurant.id === selected.id)) {
+      return filtered;
+    }
+    return [selected, ...filtered.filter((restaurant) => restaurant.id !== selected.id)];
+  }, [filtered, selected]);
+
   const handleSelect = (restaurant: Restaurant) => {
     setSelected(restaurant);
     setMapOpenMobile(true);
@@ -116,7 +123,7 @@ export default function App() {
                 <p className="status-message">No restaurants match the current filters.</p>
               ) : (
                 <div className="restaurant-list">
-                  {filtered.map((r) => (
+                  {orderedFiltered.map((r) => (
                     <RestaurantCard
                       key={r.id}
                       restaurant={r}
