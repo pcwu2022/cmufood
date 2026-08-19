@@ -47,6 +47,22 @@ function FlyToController({ restaurant }: FlyToControllerProps) {
   return null;
 }
 
+function MapSizeController() {
+  const map = useMap();
+
+  useEffect(() => {
+    const container = map.getContainer();
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize({ pan: false });
+    });
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, [map]);
+
+  return null;
+}
+
 interface MapViewProps {
   restaurants: Restaurant[];
   selected: Restaurant | null;
@@ -72,6 +88,7 @@ export default function MapView({ restaurants, selected, onSelect }: MapViewProp
       className="map-container"
       scrollWheelZoom
     >
+    <MapSizeController />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
