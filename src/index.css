@@ -1,0 +1,59 @@
+:root {
+  --cmu-red: #c41230;
+  --cmu-red-dark: #9c0e26;
+  --cmu-black: #1a1a1a;
+  --cmu-grey-dark: #63666a;
+  --cmu-grey: #b1b3b3;
+  --cmu-grey-light: #e8e8e8;
+  --cmu-white: #ffffff;
+
+  --font-sans:
+    "Helvetica Neue", Helvetica, Arial, "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  color-scheme: light;
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--cmu-grey-light);
+  color: var(--cmu-black);
+  min-height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--cmu-red);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
