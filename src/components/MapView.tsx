@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Restaurant } from "../types/restaurant";
 import { googleMapsSearchUrl } from "../utils/csv";
-import { isWithinOneMile, type UserLocation } from "../utils/location";
+import { formatDistanceAndWalk, isWithinOneMile, type UserLocation } from "../utils/location";
 
 // Default Leaflet marker icons reference bundled assets in a way that
 // breaks under Vite. Point them at the CDN copies instead.
@@ -154,10 +154,19 @@ export default function MapView({ restaurants, selected, onSelect, userLocation 
           }}
           eventHandlers={{ click: () => onSelect(r) }}
         >
+          {userLocation && (
+            <Tooltip>{formatDistanceAndWalk(r, userLocation) ?? "No walking distance"}</Tooltip>
+          )}
           <Popup>
             <strong>{r.name}</strong>
             <br />
             {r.neighborhood} · {r.type} · {r.price}
+            {userLocation && (
+              <>
+                <br />
+                {formatDistanceAndWalk(r, userLocation) ?? "No walking distance"}
+              </>
+            )}
             <br />
             <a href={googleMapsSearchUrl(r.name)} target="_blank" rel="noopener noreferrer">
               Open in Google Maps

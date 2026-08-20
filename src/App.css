@@ -396,6 +396,11 @@
   font-style: italic;
 }
 
+.badge--distance {
+  background: #d9e9f8;
+  color: #1d568f;
+}
+
 .restaurant-card-remarks {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;

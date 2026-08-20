@@ -1,14 +1,24 @@
 import type { Restaurant } from "../types/restaurant";
 import { googleMapsSearchUrl } from "../utils/csv";
+import { formatDistanceAndWalk, type UserLocation } from "../utils/location";
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
   selected: boolean;
   onSelect: (restaurant: Restaurant) => void;
+  userLocation: UserLocation | null;
 }
 
-export default function RestaurantCard({ restaurant, selected, onSelect }: RestaurantCardProps) {
+export default function RestaurantCard({
+  restaurant,
+  selected,
+  onSelect,
+  userLocation,
+}: RestaurantCardProps) {
   const hasLocation = restaurant.lat !== null && restaurant.lng !== null;
+  const distanceAndWalk = userLocation
+    ? formatDistanceAndWalk(restaurant, userLocation)
+    : null;
 
   return (
     <div
@@ -32,6 +42,7 @@ export default function RestaurantCard({ restaurant, selected, onSelect }: Resta
           {restaurant.name}
         </a>
         {!hasLocation && <span className="badge badge--muted">No map location</span>}
+        {distanceAndWalk && <span className="badge badge--distance">{distanceAndWalk}</span>}
       </div>
 
       <div className="restaurant-card-tags">

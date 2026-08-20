@@ -9,6 +9,7 @@ import { fetchRestaurants } from "./utils/csv";
 import type { FilterState, Restaurant } from "./types/restaurant";
 import { emptyFilterState } from "./types/restaurant";
 import {
+  distanceInKilometers,
   isWithinOneMile,
   LOCATION_UPDATE_INTERVAL,
   WITHIN_ONE_MILE_OPTION,
@@ -28,6 +29,7 @@ export default function App() {
   const [selected, setSelected] = useState<Restaurant | null>(null);
   const [mapOpenMobile, setMapOpenMobile] = useState(false);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [randomOrder, setRandomOrder] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -36,6 +38,9 @@ export default function App() {
       .then((data) => {
         if (cancelled) return;
         setRestaurants(data);
+        setRandomOrder(
+          Object.fromEntries(data.map((restaurant) => [restaurant.id, Math.random()])),
+        );
         setError(null);
       })
       .catch((err: unknown) => {
@@ -104,11 +109,26 @@ export default function App() {
   }, [restaurants, filters, userLocation]);
 
   const orderedFiltered = useMemo(() => {
-    if (!selected || !filtered.some((restaurant) => restaurant.id === selected.id)) {
-      return filtered;
+    const ordered = [...filtered].sort((first, second) => {
+      if (userLocation) {
+        const firstDistance =
+          first.lat !== null && first.lng !== null
+            ? distanceInKilometers(userLocation, { lat: first.lat, lng: first.lng })
+            : Number.POSITIVE_INFINITY;
+        const secondDistance =
+          second.lat !== null && second.lng !== null
+            ? distanceInKilometers(userLocation, { lat: second.lat, lng: second.lng })
+            : Number.POSITIVE_INFINITY;
+        return firstDistance - secondDistance;
+      }
+      return (randomOrder[first.id] ?? 0) - (randomOrder[second.id] ?? 0);
+    });
+
+    if (!selected || !ordered.some((restaurant) => restaurant.id === selected.id)) {
+      return ordered;
     }
-    return [selected, ...filtered.filter((restaurant) => restaurant.id !== selected.id)];
-  }, [filtered, selected]);
+    return [selected, ...ordered.filter((restaurant) => restaurant.id !== selected.id)];
+  }, [filtered, randomOrder, selected, userLocation]);
 
   const handleSelect = (restaurant: Restaurant) => {
     setSelected(restaurant);
@@ -172,6 +192,7 @@ export default function App() {
                       restaurant={r}
                       selected={selected?.id === r.id}
                       onSelect={handleSelect}
+                      userLocation={userLocation}
                     />
                   ))}
                 </div>
