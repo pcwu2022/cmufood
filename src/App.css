@@ -289,6 +289,27 @@
   height: 100%;
 }
 
+.marker-nearby {
+  filter: hue-rotate(145deg) saturate(1.5);
+}
+
+.user-location-marker {
+  background: transparent;
+  border: 2px solid var(--cmu-white);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #2878d0, 0 1px 5px rgba(0, 0, 0, 0.35);
+  background-color: #2878d0;
+}
+
+.user-location-marker span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: 6px;
+  border-radius: 50%;
+  background: var(--cmu-white);
+}
+
 .list-panel {
   min-width: 0;
 }

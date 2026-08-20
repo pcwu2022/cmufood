@@ -1,5 +1,6 @@
 import MultiSelectFilter from "./MultiSelectFilter";
 import type { FilterState } from "../types/restaurant";
+import { WITHIN_ONE_MILE_OPTION } from "../utils/location";
 
 interface FilterBarProps {
   neighborhoods: string[];
@@ -25,6 +26,7 @@ export default function FilterBar({
         label="Neighborhood"
         options={neighborhoods}
         selected={filters.neighborhoods}
+        exclusiveOptions={[WITHIN_ONE_MILE_OPTION]}
         onChange={(next) => onChange({ ...filters, neighborhoods: next })}
       />
       <MultiSelectFilter

@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Restaurant } from "../types/restaurant";
 import { googleMapsSearchUrl } from "../utils/csv";
+import { isWithinOneMile, type UserLocation } from "../utils/location";
 
 // Default Leaflet marker icons reference bundled assets in a way that
 // breaks under Vite. Point them at the CDN copies instead.
@@ -25,6 +26,19 @@ const selectedMarkerIcon = new L.Icon({
   popupAnchor: [1, -42],
   shadowSize: [52, 52],
   className: "marker-selected",
+});
+
+const nearbyMarkerIcon = new L.Icon({
+  ...markerIcon.options,
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  className: "marker-nearby",
+});
+
+const userLocationIcon = L.divIcon({
+  className: "user-location-marker",
+  html: '<span aria-hidden="true"></span>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
 });
 
 // Pittsburgh / CMU campus
@@ -63,13 +77,43 @@ function MapSizeController() {
   return null;
 }
 
+function LocationViewController({
+  location,
+  restaurants,
+}: {
+  location: UserLocation | null;
+  restaurants: Restaurant[];
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!location) return;
+    const nearby = restaurants.filter((restaurant) => isWithinOneMile(restaurant, location));
+    const points: L.LatLngExpression[] = [
+      [location.lat, location.lng],
+      ...nearby.map(
+        (restaurant): L.LatLngTuple => [restaurant.lat as number, restaurant.lng as number],
+      ),
+    ];
+
+    if (points.length === 1) {
+      map.flyTo(points[0], 15, { duration: 0.8 });
+    } else {
+      map.fitBounds(L.latLngBounds(points), { padding: [24, 24], maxZoom: 15, animate: true });
+    }
+  }, [location, restaurants, map]);
+
+  return null;
+}
+
 interface MapViewProps {
   restaurants: Restaurant[];
   selected: Restaurant | null;
   onSelect: (restaurant: Restaurant) => void;
+  userLocation: UserLocation | null;
 }
 
-export default function MapView({ restaurants, selected, onSelect }: MapViewProps) {
+export default function MapView({ restaurants, selected, onSelect, userLocation }: MapViewProps) {
   const markerRefs = useRef<Record<string, L.Marker | null>>({});
 
   const withLocation = restaurants.filter((r) => r.lat !== null && r.lng !== null);
@@ -83,7 +127,7 @@ export default function MapView({ restaurants, selected, onSelect }: MapViewProp
 
   return (
     <MapContainer
-      center={DEFAULT_CENTER}
+      center={userLocation ? [userLocation.lat, userLocation.lng] : DEFAULT_CENTER}
       zoom={DEFAULT_ZOOM}
       className="map-container"
       scrollWheelZoom
@@ -94,11 +138,17 @@ export default function MapView({ restaurants, selected, onSelect }: MapViewProp
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FlyToController restaurant={selected} />
+      <LocationViewController location={userLocation} restaurants={restaurants} />
+      {userLocation && (
+        <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon}>
+          <Popup>You are here</Popup>
+        </Marker>
+      )}
       {withLocation.map((r) => (
         <Marker
           key={r.id}
           position={[r.lat as number, r.lng as number]}
-          icon={selected?.id === r.id ? selectedMarkerIcon : markerIcon}
+          icon={selected?.id === r.id ? selectedMarkerIcon : userLocation && isWithinOneMile(r, userLocation) ? nearbyMarkerIcon : markerIcon}
           ref={(el) => {
             markerRefs.current[r.id] = el;
           }}

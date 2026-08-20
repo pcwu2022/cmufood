@@ -8,6 +8,12 @@ import MapView from "./components/MapView";
 import { fetchRestaurants } from "./utils/csv";
 import type { FilterState, Restaurant } from "./types/restaurant";
 import { emptyFilterState } from "./types/restaurant";
+import {
+  isWithinOneMile,
+  LOCATION_UPDATE_INTERVAL,
+  WITHIN_ONE_MILE_OPTION,
+  type UserLocation,
+} from "./utils/location";
 import "./App.css";
 
 function uniqueSorted(values: string[]): string[] {
@@ -21,6 +27,7 @@ export default function App() {
   const [filters, setFilters] = useState<FilterState>(emptyFilterState());
   const [selected, setSelected] = useState<Restaurant | null>(null);
   const [mapOpenMobile, setMapOpenMobile] = useState(false);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,17 +50,48 @@ export default function App() {
     };
   }, []);
 
-  const neighborhoods = useMemo(
-    () => uniqueSorted(restaurants.map((r) => r.neighborhood)),
-    [restaurants],
-  );
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    const updateLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => setUserLocation({ lat: coords.latitude, lng: coords.longitude }),
+        () => undefined,
+        { enableHighAccuracy: true, maximumAge: 30_000, timeout: 15_000 },
+      );
+    };
+
+    updateLocation();
+    const intervalId = window.setInterval(updateLocation, LOCATION_UPDATE_INTERVAL);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  const neighborhoods = useMemo(() => {
+    const sortedNeighborhoods = uniqueSorted(restaurants.map((r) => r.neighborhood));
+    return userLocation ? [WITHIN_ONE_MILE_OPTION, ...sortedNeighborhoods] : sortedNeighborhoods;
+  }, [restaurants, userLocation]);
   const types = useMemo(() => uniqueSorted(restaurants.map((r) => r.type)), [restaurants]);
   const prices = useMemo(() => uniqueSorted(restaurants.map((r) => r.price)), [restaurants]);
 
   const filtered = useMemo(() => {
     return restaurants.filter((r) => {
-      if (filters.neighborhoods !== null && !filters.neighborhoods.has(r.neighborhood)) {
-        return false;
+      if (filters.neighborhoods !== null) {
+        const wantsNearby = filters.neighborhoods.has(WITHIN_ONE_MILE_OPTION);
+        const selectedNeighborhoods = [...filters.neighborhoods].filter(
+          (neighborhood) => neighborhood !== WITHIN_ONE_MILE_OPTION,
+        );
+        if (wantsNearby && (!userLocation || !isWithinOneMile(r, userLocation))) {
+          return false;
+        }
+        if (
+          selectedNeighborhoods.length > 0 &&
+          !selectedNeighborhoods.includes(r.neighborhood)
+        ) {
+          return false;
+        }
+        if (!wantsNearby && selectedNeighborhoods.length === 0) {
+          return false;
+        }
       }
       if (filters.types !== null && !filters.types.has(r.type)) {
         return false;
@@ -63,7 +101,7 @@ export default function App() {
       }
       return true;
     });
-  }, [restaurants, filters]);
+  }, [restaurants, filters, userLocation]);
 
   const orderedFiltered = useMemo(() => {
     if (!selected || !filtered.some((restaurant) => restaurant.id === selected.id)) {
@@ -114,7 +152,12 @@ export default function App() {
                 {mapOpenMobile ? "▼ Hide map" : "▲ Show map"}
               </button>
               <div className="map-panel-body">
-                <MapView restaurants={filtered} selected={selected} onSelect={handleSelect} />
+                <MapView
+                  restaurants={filtered}
+                  selected={selected}
+                  onSelect={handleSelect}
+                  userLocation={userLocation}
+                />
               </div>
             </section>
 

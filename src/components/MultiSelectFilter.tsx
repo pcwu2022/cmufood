@@ -5,6 +5,7 @@ interface MultiSelectFilterProps {
   options: string[];
   selected: Set<string> | null;
   onChange: (next: Set<string> | null) => void;
+  exclusiveOptions?: string[];
 }
 
 /**
@@ -16,6 +17,7 @@ export default function MultiSelectFilter({
   options,
   selected,
   onChange,
+  exclusiveOptions = [],
 }: MultiSelectFilterProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -33,6 +35,10 @@ export default function MultiSelectFilter({
   const isAll = selected === null;
 
   const toggleOption = (opt: string) => {
+    if (isAll && exclusiveOptions.includes(opt)) {
+      onChange(new Set([opt]));
+      return;
+    }
     // When "All" is active, every option renders as checked. Clicking one
     // means "everything except this" rather than "just this".
     const base = isAll ? new Set(options) : new Set(selected);
