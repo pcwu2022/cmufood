@@ -29,7 +29,7 @@ data sourced live from a shared Google Sheet.
 | 6 | Restaurants without coordinates are omitted from the map (but still listed as cards) | `MapView.tsx` filters to `restaurants` with non-null `lat`/`lng`; card shows a "No map location" badge instead |
 | 7 | Card has a link to `https://www.google.com/maps/search/{name}` | `googleMapsSearchUrl()` in `utils/csv.ts`, used by the restaurant name link and the "Google Maps" button |
 | 8 | Footer fine print about map accuracy + creator credit | `Footer.tsx` |
-| 9 | Button linking to the collaboration spreadsheet | `Header.tsx` "Edit sheet" button |
+| 9 | Button linking to the collaboration spreadsheet | `Header.tsx` "Add Restaurants" button |
 | 10 | Button linking to the GitHub repo | `Header.tsx` "GitHub" button |
 | 11 | Mobile-first, installable to a phone home screen | Mobile-first CSS (`App.css`), collapsible map panel on small screens, `manifest.json` + Apple/mobile meta tags in `index.html` for "Add to Home Screen" |
 | 12 | CMU color palette (red / white / black / grey) | CSS custom properties in `index.css` (`--cmu-red: #c41230`, etc.) |

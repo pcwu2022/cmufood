@@ -12,7 +12,7 @@ export default function Header() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          📝 Edit sheet
+          📝 Add Restaurants
         </a>
         <a
           className="btn btn--outline btn--small"
